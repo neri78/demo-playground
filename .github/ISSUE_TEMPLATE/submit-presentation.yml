@@ -1,0 +1,76 @@
+name: Submit a presentation
+description: Propose a talk track for Auth0 Showcase.
+title: "Presentation: "
+labels: ["presentation", "submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share the deck with the organization (Share → General access → your org), never
+        "Anyone with the link." The talk track textarea below renders publicly on the site even
+        though the deck itself doesn't — don't paste anything from the deck that shouldn't be
+        public. The deck URL will also be committed to this public repository and shown on the
+        site, so make sure you are comfortable with its link being public.
+  - type: input
+    id: title
+    attributes:
+      label: Title
+    validations:
+      required: true
+  - type: input
+    id: oneLiner
+    attributes:
+      label: One-liner
+    validations:
+      required: true
+  - type: input
+    id: slidesUrl
+    attributes:
+      label: Google Slides URL
+      description: Must be shared to the org, not "Anyone with the link."
+    validations:
+      required: true
+  - type: dropdown
+    id: topics
+    attributes:
+      label: Topics (closed set)
+      multiple: true
+      options:
+        - ai-agents
+        - token-vault
+        - ciba
+        - human-in-the-loop
+        - events
+        - tenant-ops
+        - jwt
+    validations:
+      required: true
+  - type: input
+    id: timeToComplete
+    attributes:
+      label: Time to complete
+      placeholder: 15–20 minutes
+    validations:
+      required: true
+  - type: textarea
+    id: thumbnail
+    attributes:
+      label: Thumbnail (optional)
+      description: >-
+        Drag an image here, e.g. an exported title slide. Use a 16:10 image: anything else is
+        cropped to 16:10 (anchored to the top, so the bottom or sides are cut off). It will be
+        shown publicly on the catalog card and the detail page, so only use a slide that is fine
+        to make public.
+  - type: textarea
+    id: talkTrack
+    attributes:
+      label: Talk track
+      description: The presenter's script/notes.
+    validations:
+      required: true
+  - type: input
+    id: author
+    attributes:
+      label: Author (Name, GitHub handle)
+    validations:
+      required: true
