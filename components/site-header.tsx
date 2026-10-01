@@ -8,6 +8,7 @@ import { SITE } from "@/lib/site";
 const nav = [
   { href: "/demos", label: "Demos" },
   { href: "/skills", label: "Skills" },
+  { href: "/presentations", label: "Presentations" },
 ];
 
 function Mark() {
@@ -56,35 +57,37 @@ export function SiteHeader() {
             </span>
           </Link>
 
-          <nav className="flex items-center gap-1" aria-label="Primary">
-            {nav.map((item) => {
-              const active = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={active ? "page" : undefined}
-                  className={[
-                    "relative px-2.5 py-2 text-[15px] transition-colors duration-150",
-                    active ? "text-ink" : "text-ink-muted hover:text-ink",
-                  ].join(" ")}
-                >
-                  {item.label}
-                  <span
-                    aria-hidden
+          <nav className="flex min-w-0 items-center gap-1" aria-label="Primary">
+            <div className="flex min-w-0 items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {nav.map((item) => {
+                const active = pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
                     className={[
-                      "absolute inset-x-2.5 -bottom-px h-[2px] origin-left rounded-full",
-                      "bg-[linear-gradient(90deg,var(--signal),var(--accent))]",
-                      "transition-transform duration-200 ease-out",
-                      active ? "scale-x-100" : "scale-x-0",
+                      "relative shrink-0 px-2.5 py-2 text-[15px] transition-colors duration-150",
+                      active ? "text-ink" : "text-ink-muted hover:text-ink",
                     ].join(" ")}
-                  />
-                </Link>
-              );
-            })}
+                  >
+                    {item.label}
+                    <span
+                      aria-hidden
+                      className={[
+                        "absolute inset-x-2.5 -bottom-px h-[2px] origin-left rounded-full",
+                        "bg-[linear-gradient(90deg,var(--signal),var(--accent))]",
+                        "transition-transform duration-200 ease-out",
+                        active ? "scale-x-100" : "scale-x-0",
+                      ].join(" ")}
+                    />
+                  </Link>
+                );
+              })}
+            </div>
             <Link
               href="/submit"
-              className="ml-2 inline-flex min-h-9 items-center rounded-[6px] bg-signal px-3 text-[15px] font-medium text-bg transition-[background-color,transform] duration-150 ease-out hover:bg-signal-hover active:scale-[0.98]"
+              className="ml-2 inline-flex min-h-9 shrink-0 items-center rounded-[6px] bg-signal px-3 text-[15px] font-medium text-bg transition-[background-color,transform] duration-150 ease-out hover:bg-signal-hover active:scale-[0.98]"
             >
               Submit
             </Link>
