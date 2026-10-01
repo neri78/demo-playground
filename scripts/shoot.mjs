@@ -13,9 +13,11 @@ const ROUTES = [
   ["home", "/"],
   ["demos", "/demos"],
   ["skills", "/skills"],
+  ["presentations", "/presentations"],
   ["submit", "/submit"],
   ["demo-detail", "/demos/hero-shield"],
   ["skill-detail", "/skills/auth0-agent-skills"],
+  ["presentation-detail", "/presentations/example-placeholder"],
   ["not-found", "/nope"],
 ];
 

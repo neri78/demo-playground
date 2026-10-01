@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import { isTopic, type Topic } from "./topics";
-import type { CatalogItem, Demo, Screenshot, Skill } from "./types";
+import type { CatalogItem, Demo, Presentation, Screenshot, Skill } from "./types";
 
 const CONTENT_ROOT = path.join(process.cwd(), "content");
 const SHOTS_ROOT = path.join(process.cwd(), "public", "shots");
@@ -26,6 +26,17 @@ function screenshotsFor(slug: string): Screenshot[] {
     });
 }
 
+// One optional image per presentation at public/shots/presentations/<slug>.<ext>. Namespaced so a
+// presentation never collides with a same-slug demo (shoot-demos.mjs wipes public/shots/<slug>).
+function presentationThumbnailFor(slug: string): string | undefined {
+  for (const ext of ["webp", "png", "jpg"]) {
+    if (fs.existsSync(path.join(SHOTS_ROOT, "presentations", `${slug}.${ext}`))) {
+      return `/shots/presentations/${slug}.${ext}`;
+    }
+  }
+  return undefined;
+}
+
 function readMdFiles(dir: string) {
   const full = path.join(CONTENT_ROOT, dir);
   if (!fs.existsSync(full)) return [];
@@ -46,6 +57,20 @@ function asStringArray(value: unknown): string[] {
 
 function asTopics(value: unknown): Topic[] {
   return asStringArray(value).filter(isTopic);
+}
+
+// `draft: true` hides an entry on the real production deploy while still
+// showing it in `next dev` and on Vercel preview deploys — lets a maintainer
+// stage unfinished content (no real deck/repo yet) for review before launch.
+// VERCEL_ENV is "production" only on the real deploy and "preview" on PR/
+// branch deploys; NODE_ENV alone can't tell those apart, since both run
+// `next build`. Off Vercel, VERCEL_ENV is never set, so fall back to NODE_ENV
+// (which can only distinguish dev from any build, not preview from prod).
+function isVisible(data: Record<string, unknown>): boolean {
+  if (!data.draft) return true;
+  const vercelEnv = process.env.VERCEL_ENV;
+  if (vercelEnv) return vercelEnv !== "production";
+  return process.env.NODE_ENV !== "production";
 }
 
 function splitSections(body: string) {
@@ -118,6 +143,45 @@ function parseSkill(slug: string, data: Record<string, unknown>, body: string): 
   };
 }
 
+// Fails the build on a "Publish to web"/embed link (decks must be org-shared, not public) and,
+// for non-drafts, on an empty or placeholder URL. Drafts may keep the placeholder.
+function assertValidSlidesUrl(slug: string, slidesUrl: string, draft: boolean) {
+  if (/\/pub\b|\/embed\b/.test(slidesUrl)) {
+    throw new Error(
+      `[presentations] ${slug}: slidesUrl is a "Publish to web"/embed link (${slidesUrl}). ` +
+        `Share the deck to the org and use the normal /edit link.`,
+    );
+  }
+  if (!draft && (!slidesUrl || slidesUrl.includes("REPLACE_ME"))) {
+    throw new Error(`[presentations] ${slug}: slidesUrl is empty or still a placeholder.`);
+  }
+}
+
+function parsePresentation(
+  slug: string,
+  data: Record<string, unknown>,
+  body: string,
+): Presentation {
+  const author = (data.author as { name?: string; github?: string }) ?? {};
+  const slidesUrl = String(data.slidesUrl ?? "");
+  assertValidSlidesUrl(slug, slidesUrl, Boolean(data.draft));
+  return {
+    kind: "presentation",
+    slug,
+    title: String(data.title ?? slug),
+    oneLiner: String(data.oneLiner ?? ""),
+    topics: asTopics(data.topics),
+    author: { name: String(author.name ?? "Unknown"), github: String(author.github ?? "") },
+    draft: Boolean(data.draft),
+    thumbnail: presentationThumbnailFor(slug),
+    timeToComplete: String(data.timeToComplete ?? "Unknown"),
+    seenAt: asStringArray(data.seenAt),
+    seeAlso: asStringArray(data.seeAlso),
+    slidesUrl,
+    talkTrack: body,
+  };
+}
+
 export function getDemos(): Demo[] {
   return readMdFiles("demos")
     .map((file) => parseDemo(file.slug, file.data as Record<string, unknown>, file.body))
@@ -136,6 +200,17 @@ export function getSkills(): Skill[] {
 
 export function getSkill(slug: string) {
   return getSkills().find((skill) => skill.slug === slug);
+}
+
+export function getPresentations(): Presentation[] {
+  return readMdFiles("presentations")
+    .filter((file) => isVisible(file.data as Record<string, unknown>))
+    .map((file) => parsePresentation(file.slug, file.data as Record<string, unknown>, file.body))
+    .toSorted((a, b) => a.title.localeCompare(b.title));
+}
+
+export function getPresentation(slug: string) {
+  return getPresentations().find((presentation) => presentation.slug === slug);
 }
 
 export function getCatalogItems(): CatalogItem[] {
@@ -162,5 +237,17 @@ export function getCatalogItems(): CatalogItem[] {
       href: `/skills/${skill.slug}`,
     }),
   );
-  return [...demos, ...skills];
+  const presentations = getPresentations().map(
+    (presentation): CatalogItem => ({
+      kind: "presentation",
+      slug: presentation.slug,
+      title: presentation.title,
+      oneLiner: presentation.oneLiner,
+      topics: presentation.topics,
+      href: `/presentations/${presentation.slug}`,
+      timeToStandUp: presentation.timeToComplete,
+      thumbnail: presentation.thumbnail,
+    }),
+  );
+  return [...demos, ...skills, ...presentations];
 }

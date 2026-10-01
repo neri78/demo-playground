@@ -4,8 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
+import { PresentationPlaceholder } from "@/components/presentation-placeholder";
 import type { CatalogItem } from "@/lib/types";
 import { TOPIC_LABELS, TOPICS, isTopic, type Topic } from "@/lib/topics";
+
+const KIND_LABELS: Record<CatalogItem["kind"], string> = {
+  demo: "Demo",
+  skill: "Skill",
+  presentation: "Presentation",
+};
 
 const chipBase =
   "min-h-9 rounded-full border px-3 text-[13px] transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.98]";
@@ -89,6 +96,7 @@ export function Catalog({ items }: { items: CatalogItem[] }) {
 
 function CatalogCard({ item }: { item: CatalogItem }) {
   const isDemo = item.kind === "demo";
+  const isPresentation = item.kind === "presentation";
   return (
     <Link
       href={item.href}
@@ -104,10 +112,15 @@ function CatalogCard({ item }: { item: CatalogItem }) {
             className="object-cover object-top transition-transform duration-500 ease-out group-hover:scale-[1.03]"
           />
         </div>
+      ) : isPresentation ? (
+        <PresentationPlaceholder className="border-b border-line" />
       ) : null}
       <div className="flex flex-1 flex-col p-5">
-        <p className="text-[13px] text-accent-ink">
-          {isDemo ? "Demo" : "Skill"}
+        <p className="flex items-center gap-2 text-[13px] text-accent-ink">
+          <span>{KIND_LABELS[item.kind]}</span>
+          {isPresentation ? (
+            <span className="text-ink-faint">🔒 Slides: internal-only</span>
+          ) : null}
         </p>
         <h2 className="mt-2 text-xl font-medium tracking-[-0.015em] text-ink">
           {item.title}
@@ -124,7 +137,7 @@ function CatalogCard({ item }: { item: CatalogItem }) {
             </>
           ) : null}
           <span>
-            {item.timeToStandUp ?? (isDemo ? "Runnable app" : "Agent skill")}
+            {item.timeToStandUp ?? (isDemo ? "Runnable app" : isPresentation ? "Talk + slides" : "Agent skill")}
           </span>
         </p>
       </div>

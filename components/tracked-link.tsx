@@ -9,9 +9,10 @@ type TrackedLinkProps = {
   children: ReactNode;
   className?: string;
   title?: string;
+  data?: Record<string, string>;
 };
 
-export function TrackedLink({ href, event, children, className, title }: TrackedLinkProps) {
+export function TrackedLink({ href, event, children, className, title, data }: TrackedLinkProps) {
   const external = href.startsWith("http");
   return (
     <a
@@ -20,7 +21,7 @@ export function TrackedLink({ href, event, children, className, title }: Tracked
       title={title}
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       onClick={() => {
-        track(event, { href });
+        track(event, data ?? { href });
       }}
     >
       {children}

@@ -66,8 +66,24 @@ export type Skill = {
   synopsis: string;
 };
 
+export type Presentation = {
+  kind: "presentation";
+  slug: string;
+  title: string;
+  oneLiner: string;
+  topics: Topic[];
+  author: Author;
+  draft?: boolean;
+  thumbnail?: string;
+  timeToComplete: string;
+  seenAt: string[];
+  seeAlso: string[];
+  slidesUrl: string;
+  talkTrack: string;
+};
+
 export type CatalogItem = {
-  kind: "demo" | "skill";
+  kind: "demo" | "skill" | "presentation";
   slug: string;
   title: string;
   oneLiner: string;

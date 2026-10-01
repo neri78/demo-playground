@@ -19,6 +19,12 @@ const options = [
     title: "Agent skill",
     body: "Install targets and the stories it covers. One package can host several.",
   },
+  {
+    template: "submit-presentation.yml",
+    kind: "Presentation",
+    title: "Talk track",
+    body: "Google Slides link (shared to the org), talk track, and how long it takes.",
+  },
 ] as const;
 
 export default function SubmitPage() {
